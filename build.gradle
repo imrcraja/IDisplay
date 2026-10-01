@@ -26,7 +26,7 @@ java {
     targetCompatibility = JavaVersion.VERSION_17
 }
 jar {
-    from('LICENSE') { rename { "${it}_${project.archivesName.get()}" } }
+    from('LICENSE') { rename { "${it}_${base.archivesName.get()}" } }
 }
 publishing {
     publications {
