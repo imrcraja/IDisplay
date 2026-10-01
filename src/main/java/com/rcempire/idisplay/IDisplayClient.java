@@ -7,7 +7,6 @@ import com.google.gson.JsonParser;
 import com.mojang.brigadier.arguments.StringArgumentType;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.command.v2.ClientCommandRegistrationCallback;
-import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientPlayConnectionEvents;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
@@ -39,7 +38,6 @@ public final class IDisplayClient implements ClientModInitializer {
     public void onInitializeClient() {
         loadConfig();
         registerCommands();
-        ClientPlayConnectionEvents.JOIN.register((handler, client) -> loadConfig());
     }
 
     private static void registerCommands() {
