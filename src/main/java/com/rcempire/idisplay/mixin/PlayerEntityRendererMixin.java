@@ -3,47 +3,41 @@ package com.rcempire.idisplay.mixin;
 import com.rcempire.idisplay.IDisplayClient;
 import net.minecraft.client.render.VertexConsumerProvider;
 import net.minecraft.client.render.entity.EntityRenderer;
-import net.minecraft.client.network.AbstractClientPlayerEntity;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.entity.Entity;
 import net.minecraft.text.Text;
 import org.spongepowered.asm.mixin.Mixin;
-import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
-import org.spongepowered.asm.mixin.injection.Inject;
-import org.spongepowered.asm.mixin.injection.ModifyVariable;
-import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+import org.spongepowered.asm.mixin.injection.ModifyArgs;
+import org.spongepowered.asm.mixin.injection.invoke.arg.Args;
 
 @Mixin(EntityRenderer.class)
 public abstract class PlayerEntityRendererMixin {
-    @Unique
-    private static final ThreadLocal<Entity> IDISPLAY_ENTITY = new ThreadLocal<>();
-
-    @Inject(
-            method = "renderLabelIfPresent(Lnet/minecraft/entity/Entity;Lnet/minecraft/text/Text;Lnet/minecraft/client/util/math/MatrixStack;Lnet/minecraft/client/render/VertexConsumerProvider;I)V",
-            at = @At("HEAD")
+    /*
+     * Minecraft 1.20.1 calls renderLabelIfPresent from EntityRenderer.render().
+     * Modify the call arguments instead of modifying a method parameter directly.
+     * This avoids the fragile ModifyVariable target that caused startup crashes
+     * on some Fabric/Yarn mappings and modded launchers.
+     */
+    @ModifyArgs(
+            method = "render",
+            at = @At(
+                    value = "INVOKE",
+                    target = "Lnet/minecraft/client/render/entity/EntityRenderer;renderLabelIfPresent(Lnet/minecraft/entity/Entity;Lnet/minecraft/text/Text;Lnet/minecraft/client/util/math/MatrixStack;Lnet/minecraft/client/render/VertexConsumerProvider;I)V"
+            )
     )
-    private void idisplay$captureEntity(Entity entity, Text text, MatrixStack matrices,
-                                         VertexConsumerProvider vertexConsumers, int light, CallbackInfo ci) {
-        IDISPLAY_ENTITY.set(entity);
-    }
+    private void idisplay$customLabel(Args args) {
+        Entity entity = args.get(0);
+        if (!(entity instanceof net.minecraft.client.network.AbstractClientPlayerEntity)) {
+            return;
+        }
 
-    @ModifyVariable(
-            method = "renderLabelIfPresent(Lnet/minecraft/entity/Entity;Lnet/minecraft/text/Text;Lnet/minecraft/client/util/math/MatrixStack;Lnet/minecraft/client/render/VertexConsumerProvider;I)V",
-            at = @At("HEAD"), argsOnly = true, ordinal = 0
-    )
-    private Text idisplay$customLabel(Text original) {
-        Entity entity = IDISPLAY_ENTITY.get();
-        if (!(entity instanceof AbstractClientPlayerEntity)) return original;
-        return Text.literal(IDisplayClient.getDisplayName(entity.getUuid(), original.getString()));
-    }
+        Text original = args.get(1);
+        String fallback = original.getString();
+        String custom = IDisplayClient.getDisplayName(entity.getUuid(), fallback);
 
-    @Inject(
-            method = "renderLabelIfPresent(Lnet/minecraft/entity/Entity;Lnet/minecraft/text/Text;Lnet/minecraft/client/util/math/MatrixStack;Lnet/minecraft/client/render/VertexConsumerProvider;I)V",
-            at = @At("RETURN")
-    )
-    private void idisplay$releaseEntity(Entity entity, Text text, MatrixStack matrices,
-                                         VertexConsumerProvider vertexConsumers, int light, CallbackInfo ci) {
-        IDISPLAY_ENTITY.remove();
+        if (!custom.equals(fallback)) {
+            args.set(1, Text.literal(custom));
+        }
     }
 }
