@@ -3,6 +3,7 @@ package com.rcempire.idisplay.mixin;
 import com.rcempire.idisplay.IDisplayClient;
 import net.minecraft.client.render.VertexConsumerProvider;
 import net.minecraft.client.render.entity.EntityRenderer;
+import net.minecraft.client.network.AbstractClientPlayerEntity;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.entity.Entity;
 import net.minecraft.text.Text;
@@ -33,7 +34,7 @@ public abstract class PlayerEntityRendererMixin {
     )
     private Text idisplay$customLabel(Text original) {
         Entity entity = IDISPLAY_ENTITY.get();
-        if (entity == null || !entity.getType().toString().equals("minecraft:player")) return original;
+        if (!(entity instanceof AbstractClientPlayerEntity)) return original;
         return Text.literal(IDisplayClient.getDisplayName(entity.getUuid(), original.getString()));
     }
 
