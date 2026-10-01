@@ -1,0 +1,22 @@
+{
+  "schemaVersion": 1,
+  "id": "idisplay",
+  "version": "${version}",
+  "name": "IDisplay",
+  "description": "Client-side custom display names and local join/leave simulation commands for Minecraft 1.20.1.",
+  "authors": ["RC Empire"],
+  "contact": {
+    "homepage": "https://github.com/imrcraja/IDisplay"
+  },
+  "license": "All-Rights-Reserved",
+  "environment": "client",
+  "entrypoints": {
+    "client": ["com.rcempire.idisplay.IDisplayClient"]
+  },
+  "mixins": ["idisplay.mixins.json"],
+  "depends": {
+    "fabricloader": ">=0.14.21",
+    "minecraft": "1.20.1",
+    "fabric-api": "*"
+  }
+}
