@@ -1,5 +1,5 @@
 {
-  "required": true,
+  "required": false,
   "package": "com.rcempire.idisplay.mixin",
   "compatibilityLevel": "JAVA_17",
   "client": [
@@ -8,6 +8,6 @@
     "ChatHudMixin"
   ],
   "injectors": {
-    "defaultRequire": 1
+    "defaultRequire": 0
   }
 }
